@@ -1,3 +1,3 @@
 - insert:
     - id: live-wallpaper
-      name: '@local/dsh-live-wallpaper'
+      name: '@caprimoon/dsh-live-wallpaper'

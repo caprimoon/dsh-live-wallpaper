@@ -1,6 +1,6 @@
 {
-  "name": "@local/dsh-live-wallpaper",
-  "version": "1.2.1",
+  "name": "@caprimoon/dsh-live-wallpaper",
+  "version": "1.2.3",
   "private": true,
   "type": "module",
   "description": "Dynamic wallpaper and glass panels for the DeepSeek Harness web GUI: five-source video gallery, local media import, offline canvas scenes, and six independently adjustable glass zones with backdrop blur.",
@@ -28,5 +28,20 @@
       "platform": "web",
       "immediately": true
     }
-  }
+  },
+  "license": "MIT",
+  "author": "caprimoon",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/caprimoon/dsh-live-wallpaper.git"
+  },
+  "homepage": "https://github.com/caprimoon/dsh-live-wallpaper#readme",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "wallpaper",
+    "glassmorphism",
+    "live-wallpaper",
+    "plugin"
+  ]
 }

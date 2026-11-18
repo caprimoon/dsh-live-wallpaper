@@ -7,7 +7,7 @@
  * registered into `shell.overlay`.
  */
 window.__ModuleLoader__.load({
-  id: '@local/dsh-live-wallpaper',
+  id: '@caprimoon/dsh-live-wallpaper',
   factory(require) {
     'use strict'
 

@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "LiveCanvas wallpaper and glass",
+    "description": "Sets a live wallpaper behind the window and turns the sidebar, conversation, and composer into separately adjustable glass panels. Browses a five-source online gallery, plays imported local media, and includes offline canvas scenes.",
+    "detail": "docs/DETAIL.md"
+  }
+}

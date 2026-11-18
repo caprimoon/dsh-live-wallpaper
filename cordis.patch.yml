@@ -1,0 +1,3 @@
+- insert:
+    - id: live-canvas
+      name: '@local/dsh-live-canvas'

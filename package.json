@@ -1,0 +1,32 @@
+{
+  "name": "@local/dsh-live-canvas",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Live wallpaper and glass panels for the DeepSeek Harness web GUI: five-source video gallery, local media import, offline canvas scenes, and per-zone glass with backdrop blur.",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "host",
+    "locale/*.json",
+    "docs",
+    "icon.svg",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  }
+}

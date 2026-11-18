@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "LiveCanvas · 动态壁纸与毛玻璃",
+    "description": "在窗口背后铺一层动态壁纸，并把左侧栏、对话内容区与底部输入框变成可分别调节的毛玻璃面板。内置五源在线图库、本地媒体导入与离线 Canvas 场景。",
+    "detail": "docs/DETAIL.md"
+  }
+}

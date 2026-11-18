@@ -399,8 +399,8 @@ window.__ModuleLoader__.load({
         // composer card and the instruction menu sit beside it rather than inside
         // it — each keeps its own backdrop filter and stays independently tunable.
         layer.hidden = !settings.enabled
-        if (settings.enabled) root.setAttribute('data-live-canvas', 'on')
-        else root.removeAttribute('data-live-canvas')
+        if (settings.enabled) root.setAttribute('data-live-wallpaper', 'on')
+        else root.removeAttribute('data-live-wallpaper')
         refreshStatus()
       }
 
@@ -934,7 +934,7 @@ window.__ModuleLoader__.load({
           layer?.remove()
           layer = null
           const root = document.documentElement
-          root.removeAttribute('data-live-canvas')
+          root.removeAttribute('data-live-wallpaper')
           for (const name of ['--lwc-dim', '--lwc-blur', '--lwc-fit', '--lwc-x', '--lwc-y', '--lwc-bg-1', '--lwc-bg-2', '--lwc-bg-3', '--lwc-bg-4', '--lwc-bg-5', '--lwc-bg-6', '--lwc-blur-1', '--lwc-blur-2', '--lwc-blur-3', '--lwc-blur-4', '--lwc-blur-5', '--lwc-blur-6']) {
             root.style.removeProperty(name)
           }
@@ -974,11 +974,11 @@ window.__ModuleLoader__.load({
       // Zone tokens: the shell's own materials become the three glass zones.
       // `body` and `body[data-ds-dark-theme]` both declare these, so the rule
       // lists both to beat each palette block at equal specificity.
-      'html[data-live-canvas="on"] body,html[data-live-canvas="on"] body[data-ds-dark-theme]{--dsw-alias-bg-base:var(--lwc-bg-2,rgba(35,35,35,0.500));--dsw-specific-sidebar-fill:var(--lwc-bg-1,rgba(35,35,35,0.500));--dsw-specific-input-major:var(--lwc-bg-3,rgba(74,74,74,0.500));--dsw-specific-bubble:var(--lwc-bg-2-user,rgba(66,66,66,0.500));background-color:transparent!important}',
+      'html[data-live-wallpaper="on"] body,html[data-live-wallpaper="on"] body[data-ds-dark-theme]{--dsw-alias-bg-base:var(--lwc-bg-2,rgba(35,35,35,0.500));--dsw-specific-sidebar-fill:var(--lwc-bg-1,rgba(35,35,35,0.500));--dsw-specific-input-major:var(--lwc-bg-3,rgba(74,74,74,0.500));--dsw-specific-bubble:var(--lwc-bg-2-user,rgba(66,66,66,0.500));background-color:transparent!important}',
       // The frame paints `--dsw-specific-sidebar-fill` on Windows (caption strip
       // included); clear it so the wallpaper reaches the window edges, and drop
       // the caption band's own fill.
-      'html[data-live-canvas="on"] [data-slot="root"] > *{background:transparent!important}',
+      'html[data-live-wallpaper="on"] [data-slot="root"] > *{background:transparent!important}',
       // Zone 1 — the whole left column in one piece, painted by a layer behind its
       // content. The blur must NOT sit on the column, on the sidebar root or on any
       // other ancestor: on Windows the collapse toggle and the collapsed New Session
@@ -986,49 +986,49 @@ window.__ModuleLoader__.load({
       // ancestor re-anchors them to itself instead of the window. A pseudo layer is
       // nobody's ancestor, so it frosts the full column — footer included — with no
       // seam, and the fixed buttons keep their viewport coordinates.
-      'html[data-live-canvas="on"] [class*="_sidebarCol"]{position:relative;isolation:isolate;background:transparent!important;border-right-color:transparent!important}',
-      'html[data-live-canvas="on"] [class*="_sidebarCol"]::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:var(--lwc-bg-1,rgba(35,35,35,0.500));backdrop-filter:var(--lwc-blur-1,none);-webkit-backdrop-filter:var(--lwc-blur-1,none)}',
-      'html[data-live-canvas="on"] [data-slot="sidebar"] > *{background:transparent!important}',
+      'html[data-live-wallpaper="on"] [class*="_sidebarCol"]{position:relative;isolation:isolate;background:transparent!important;border-right-color:transparent!important}',
+      'html[data-live-wallpaper="on"] [class*="_sidebarCol"]::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:var(--lwc-bg-1,rgba(35,35,35,0.500));backdrop-filter:var(--lwc-blur-1,none);-webkit-backdrop-filter:var(--lwc-blur-1,none)}',
+      'html[data-live-wallpaper="on"] [data-slot="sidebar"] > *{background:transparent!important}',
       // The sidebar ends its scroll list with a 24px fade painted from
       // `--dsw-specific-sidebar-fill`. That token is translucent here, so the
       // "cover" turned into a visible band; nothing needs covering on glass.
-      'html[data-live-canvas="on"] [data-slot="sidebar"] [class*="_scrollFade"]{display:none!important}',
-      'html[data-live-canvas="on"] [data-slot="sidebar"] [class*="_scrollFade"]::before,html[data-live-canvas="on"] [data-slot="sidebar"] [class*="_scrollFade"]::after{background:none!important;background-image:none!important}',
+      'html[data-live-wallpaper="on"] [data-slot="sidebar"] [class*="_scrollFade"]{display:none!important}',
+      'html[data-live-wallpaper="on"] [data-slot="sidebar"] [class*="_scrollFade"]::before,html[data-live-wallpaper="on"] [data-slot="sidebar"] [class*="_scrollFade"]::after{background:none!important;background-image:none!important}',
       // Zone 2 — the main column ground, drawn as its own layer behind the panel
       // content. A background layer on the panel itself would make every descendant
       // with a backdrop-filter (输入框、指令菜单) nest inside it, and a nested
       // filter samples the wallpaper without this tint — the shaded rectangle the
       // user saw. As a sibling layer it is simply part of what they sample, so all
       // five zones stay independent.
-      'html[data-live-canvas="on"] [class*="_centerCol"]{background:transparent!important}',
-      'html[data-live-canvas="on"] [class*="_mainPanel"]{position:relative!important;isolation:isolate;background:transparent!important}',
-      'html[data-live-canvas="on"] [class*="_mainPanel"]::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:var(--lwc-bg-2,rgba(35,35,35,0.500));backdrop-filter:var(--lwc-blur-2,none);-webkit-backdrop-filter:var(--lwc-blur-2,none)}',
-      'html[data-live-canvas="on"] [data-slot="main"] [data-phase]:not([contenteditable]):not([data-composer-input]):not([data-composer-card] *){background:transparent!important}',
+      'html[data-live-wallpaper="on"] [class*="_centerCol"]{background:transparent!important}',
+      'html[data-live-wallpaper="on"] [class*="_mainPanel"]{position:relative!important;isolation:isolate;background:transparent!important}',
+      'html[data-live-wallpaper="on"] [class*="_mainPanel"]::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:var(--lwc-bg-2,rgba(35,35,35,0.500));backdrop-filter:var(--lwc-blur-2,none);-webkit-backdrop-filter:var(--lwc-blur-2,none)}',
+      'html[data-live-wallpaper="on"] [data-slot="main"] [data-phase]:not([contenteditable]):not([data-composer-input]):not([data-composer-card] *){background:transparent!important}',
       // The composer seat's own 36px fade reads bg-base, which is translucent
       // now; clear it. The status readings live in `[data-composer-dock]`, so
       // the frost is a rounded pill around that row instead of a band behind
       // the whole composer.
-      'html[data-live-canvas="on"] [data-composer-seat]{background:none!important;box-shadow:none!important}',
-      'html[data-live-canvas="on"] [data-composer-seat]::before,html[data-live-canvas="on"] [data-composer-seat]::after{background:none!important;background-image:none!important}',
-      'html[data-live-canvas="on"] [data-composer-dock]{background:var(--lwc-bg-4,rgba(74,74,74,0.700))!important;backdrop-filter:var(--lwc-blur-4,none);-webkit-backdrop-filter:var(--lwc-blur-4,none);border-radius:999px;padding:0;border:0;margin-top:2px;margin-bottom:-2px}',
+      'html[data-live-wallpaper="on"] [data-composer-seat]{background:none!important;box-shadow:none!important}',
+      'html[data-live-wallpaper="on"] [data-composer-seat]::before,html[data-live-wallpaper="on"] [data-composer-seat]::after{background:none!important;background-image:none!important}',
+      'html[data-live-wallpaper="on"] [data-composer-dock]{background:var(--lwc-bg-4,rgba(74,74,74,0.700))!important;backdrop-filter:var(--lwc-blur-4,none);-webkit-backdrop-filter:var(--lwc-blur-4,none);border-radius:999px;padding:0;border:0;margin-top:2px;margin-bottom:-2px}',
       // Zone 3 — the composer card, always with its own filter; independent of the
       // content-area blur because that one now lives on a layer behind it.
-      'html[data-live-canvas="on"] [data-composer-card]{background:var(--lwc-bg-3,rgba(74,74,74,0.500))!important;background-image:none!important;backdrop-filter:var(--lwc-blur-3,none);-webkit-backdrop-filter:var(--lwc-blur-3,none);isolation:isolate}',
+      'html[data-live-wallpaper="on"] [data-composer-card]{background:var(--lwc-bg-3,rgba(74,74,74,0.500))!important;background-image:none!important;backdrop-filter:var(--lwc-blur-3,none);-webkit-backdrop-filter:var(--lwc-blur-3,none);isolation:isolate}',
       // Zone 5 — the `/` and `@` instruction menus, which the composer renders inside
       // `[data-composer-overlay]`. `data-trigger-menu` is the host's own hook.
-      'html[data-live-canvas="on"] [data-trigger-menu]{background:var(--lwc-bg-5,rgba(74,74,74,0.920))!important;backdrop-filter:var(--lwc-blur-5,none);-webkit-backdrop-filter:var(--lwc-blur-5,none);border-radius:14px;border:1px solid var(--dsw-alias-border-l1,rgba(127,127,127,.28))}',
+      'html[data-live-wallpaper="on"] [data-trigger-menu]{background:var(--lwc-bg-5,rgba(74,74,74,0.920))!important;backdrop-filter:var(--lwc-blur-5,none);-webkit-backdrop-filter:var(--lwc-blur-5,none);border-radius:14px;border:1px solid var(--dsw-alias-border-l1,rgba(127,127,127,.28))}',
       // Belt and braces: the same fill on any card inside the composer slot, so
       // a renamed attribute cannot leave the host's own input surface behind.
-      'html[data-live-canvas="on"] [data-slot="conversation.composer.bar"] [class*="_card"]{background-color:var(--lwc-bg-3,rgba(74,74,74,0.500))!important}',
+      'html[data-live-wallpaper="on"] [data-slot="conversation.composer.bar"] [class*="_card"]{background-color:var(--lwc-bg-3,rgba(74,74,74,0.500))!important}',
       // One surface only: the card's own children drop their fills so no inner
       // plate can read as a second, darker input box. Scoped to direct children
       // on purpose — the `/` command menu and other popovers render inside
       // `[data-composer-overlay]`, and they must keep the host's own surface.
-      'html[data-live-canvas="on"] [data-composer-card] > *:not(button){background-color:transparent!important;background-image:none!important}',
-      'html[data-live-canvas="on"] [data-input-scroll],html[data-live-canvas="on"] [data-composer-input],html[data-live-canvas="on"] [data-composer-placeholder]{background-color:transparent!important;background-image:none!important}',
+      'html[data-live-wallpaper="on"] [data-composer-card] > *:not(button){background-color:transparent!important;background-image:none!important}',
+      'html[data-live-wallpaper="on"] [data-input-scroll],html[data-live-wallpaper="on"] [data-composer-input],html[data-live-wallpaper="on"] [data-composer-placeholder]{background-color:transparent!important;background-image:none!important}',
       // Sent bubbles have their own zone so the contrast step is tunable. Only the
       // fill and the frost change here: radius and padding stay the host's own.
-      'html[data-live-canvas="on"] [data-message-bubble]{background:var(--lwc-bg-6,rgba(66,66,66,0.250))!important;backdrop-filter:var(--lwc-blur-6,none);-webkit-backdrop-filter:var(--lwc-blur-6,none)}',
+      'html[data-live-wallpaper="on"] [data-message-bubble]{background:var(--lwc-bg-6,rgba(66,66,66,0.250))!important;backdrop-filter:var(--lwc-blur-6,none);-webkit-backdrop-filter:var(--lwc-blur-6,none)}',
       // Drawer (the gallery and settings live here, as in the reference).
       '.lwc-drawer{position:fixed;top:var(--dsh-frame-top-clearance,0px);right:0;bottom:0;width:clamp(360px,30vw,540px);z-index:60;display:flex;flex-direction:column;min-height:0;box-sizing:border-box;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#17191e) 96%,transparent);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:var(--dsw-alias-label-primary,#e8ecf2);border-left:1px solid var(--dsw-alias-border-l1,rgba(127,127,127,.28));box-shadow:-16px 0 44px rgba(0,0,0,.22)}',
       '.lwc-drawer-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px 10px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(127,127,127,.2))}',
@@ -1459,7 +1459,7 @@ function Drawer({ engine }) {
         engine.ctx = ctx
         ctx.effect(() => {
           const style = document.createElement('style')
-          style.id = 'dsh-live-canvas-style'
+          style.id = 'dsh-live-wallpaper-style'
           style.textContent = STYLE_TEXT
           document.head.append(style)
           return () => style.remove()
@@ -1468,13 +1468,13 @@ function Drawer({ engine }) {
         // The row lives in the global panel list; its `main` seat only opens the
         // drawer, so the gallery UI stays a drawer as requested.
         ctx.slots.register({
-          name: 'main', key: 'live-canvas',
+          name: 'main', key: 'live-wallpaper',
         }, () => h(PanelLauncher, { engine }))
         ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
-          name: 'sidebar.panellist', id: 'live-canvas', order: 30, label: '动态壁纸',
+          name: 'sidebar.panellist', id: 'live-wallpaper', order: 30, label: '动态壁纸',
         }, (props) => h(PanelEntry, { engine, size: props?.size })))
         ctx.slots.inject('shell.overlay', () => ctx.slots.register({
-          name: 'shell.overlay', id: 'live-canvas-drawer', order: 80,
+          name: 'shell.overlay', id: 'live-wallpaper-drawer', order: 80,
         }, () => h(Drawer, { engine })))
       },
     }

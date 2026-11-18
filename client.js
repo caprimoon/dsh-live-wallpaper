@@ -7,15 +7,18 @@
  * registered into `shell.overlay`.
  */
 window.__ModuleLoader__.load({
-  id: '@local/dsh-live-canvas',
+  id: '@local/dsh-live-wallpaper',
   factory(require) {
     'use strict'
 
     const React = require('react')
     const h = React.createElement
 
-    const PREFIX = '/plugins/live-canvas'
+    const PREFIX = '/plugins/live-wallpaper'
     const API = PREFIX + '/api'
+    // Storage keys and the media directory keep their original names: they are
+    // stable identities for the user's own data (tuned settings, favourites,
+    // imported files) and must survive the project rename.
     const KEY_SETTINGS = 'dsh-live-canvas:settings'
     const KEY_FAVORITES = 'dsh-live-canvas:favorites'
     const KEY_LOCALS = 'dsh-live-canvas:locals'
@@ -50,15 +53,18 @@ window.__ModuleLoader__.load({
 
     const DEFAULTS = {
       enabled: true, dim: 20, blur: 0,
-      // Five zones, always independent: 1 左侧栏, 2 内容区, 3 输入框,
-      // 4 用量栏, 5 指令菜单. These are the tuned shipping values.
+      // Six zones, always independent: 1 左侧栏, 2 内容区, 3 输入框,
+      // 4 用量栏, 5 指令菜单, 6 我的消息. These are the tuned shipping values.
       color1: '#232323', glass1: 55, glassBlur1: 10,
-      color2: '#232323', glass2: 25, glassBlur2: 0,
-      color3: '#4a4a4a', glass3: 18, glassBlur3: 8,
+      color2: '#232323', glass2: 25, glassBlur2: 2,
+      color3: '#4a4a4a', glass3: 30, glassBlur3: 8,
       color4: '#4a4a4a', glass4: 30, glassBlur4: 8,
-      color5: '#4a4a4a', glass5: 92, glassBlur5: 16,
+      color5: '#4a4a4a', glass5: 85, glassBlur5: 24,
+      // The sent bubble keeps the contrast step the content area used to derive:
+      // rgb(66,66,66) is #232323 lifted by the old 14% rule.
+      color6: '#424242', glass6: 25, glassBlur6: 0,
       fit: 'cover', quality: 'auto', focalX: 49, focalY: 50, speed: 1,
-      paused: false, pauseHidden: true, pauseOnTask: true,
+      paused: false, pauseHidden: true, pauseOnTask: false,
       // `motionConsent` is a grant the user gives by pressing 播放/仍然播放, not a
       // preference: it ships unset so the reduced-motion rule applies from the
       // first run.
@@ -71,28 +77,31 @@ window.__ModuleLoader__.load({
 
     /** Zone tints that match each palette while the colors stay automatic. */
     const AUTO_COLORS = {
-      dark: { 1: '#232323', 2: '#232323', 3: '#4a4a4a', 4: '#4a4a4a', 5: '#4a4a4a' },
-      light: { 1: '#eef1f6', 2: '#f6f8fb', 3: '#ffffff', 4: '#ffffff', 5: '#ffffff' },
+      dark: { 1: '#232323', 2: '#232323', 3: '#4a4a4a', 4: '#4a4a4a', 5: '#4a4a4a', 6: '#424242' },
+      light: { 1: '#eef1f6', 2: '#f6f8fb', 3: '#ffffff', 4: '#ffffff', 5: '#ffffff', 6: '#dddfe2' },
     }
 
     const SETTINGS_FIELDS = [
-      { key: 'dim', type: 'range', min: 0, max: 85, step: 1, unit: '%', default: 30, title: '背景遮罩（%）', description: '在壁纸画面上方叠加半透明黑色遮罩。数值越高背景越暗、代码与对话文字越清晰；设为 0% 显示壁纸原始亮度。' },
+      { key: 'dim', type: 'range', min: 0, max: 85, step: 1, unit: '%', default: 20, title: '背景遮罩（%）', description: '在壁纸画面上方叠加半透明黑色遮罩。数值越高背景越暗、代码与对话文字越清晰；设为 0% 显示壁纸原始亮度。' },
       { key: 'blur', type: 'range', min: 0, max: 18, step: 1, unit: 'px', default: 0, title: '背景模糊（px）', description: '对壁纸画面本身做高斯模糊，仅柔化视觉效果，不改变视频原分辨率。' },
       { key: 'color1', type: 'color', default: '#232323', title: '1 · 左侧栏颜色', description: '左侧项目栏的玻璃底色。' },
-      { key: 'glass1', type: 'range', min: 0, max: 100, step: 1, unit: '%', default: 50, title: '1 · 左侧栏遮罩（%）', description: '左侧栏的不透明度（0% 全透，100% 完全不透明）。' },
-      { key: 'glassBlur1', type: 'range', min: 0, max: 24, step: 1, unit: 'px', default: 12, title: '1 · 左侧栏模糊（px）', description: '左侧栏背后的毛玻璃虚化强度（0px 关闭）。' },
+      { key: 'glass1', type: 'range', min: 0, max: 100, step: 1, unit: '%', default: 55, title: '1 · 左侧栏遮罩（%）', description: '左侧栏的不透明度（0% 全透，100% 完全不透明）。' },
+      { key: 'glassBlur1', type: 'range', min: 0, max: 24, step: 1, unit: 'px', default: 10, title: '1 · 左侧栏模糊（px）', description: '左侧栏背后的毛玻璃虚化强度（0px 关闭）。' },
       { key: 'color2', type: 'color', default: '#232323', title: '2 · 内容区颜色', description: '中栏内容区（对话、插件页等所有主面板）的玻璃底色；你发送的消息气泡会自动基于此颜色微调对比度。' },
-      { key: 'glass2', type: 'range', min: 0, max: 100, step: 1, unit: '%', default: 50, title: '2 · 内容区遮罩（%）', description: '内容区的不透明度（0% 全透，100% 完全不透明）。' },
-      { key: 'glassBlur2', type: 'range', min: 0, max: 24, step: 1, unit: 'px', default: 12, title: '2 · 内容区模糊（px）', description: '内容区背后的毛玻璃虚化强度（0px 关闭）。' },
+      { key: 'glass2', type: 'range', min: 0, max: 100, step: 1, unit: '%', default: 25, title: '2 · 内容区遮罩（%）', description: '内容区的不透明度（0% 全透，100% 完全不透明）。' },
+      { key: 'glassBlur2', type: 'range', min: 0, max: 24, step: 1, unit: 'px', default: 2, title: '2 · 内容区模糊（px）', description: '内容区背后的毛玻璃虚化强度（0px 关闭）。' },
       { key: 'color3', type: 'color', default: '#4a4a4a', title: '3 · 底部输入框颜色', description: '输入框卡片的玻璃底色（默认 #4A4A4A）。' },
-      { key: 'glass3', type: 'range', min: 0, max: 100, step: 1, unit: '%', default: 50, title: '3 · 输入框遮罩（%）', description: '输入框的不透明度（0% 全透，100% 完全不透明）。' },
-      { key: 'glassBlur3', type: 'range', min: 0, max: 24, step: 1, unit: 'px', default: 12, title: '3 · 输入框模糊（px）', description: '输入框背后的虚化强度，与内容区的模糊各算各的、互不影响。' },
+      { key: 'glass3', type: 'range', min: 0, max: 100, step: 1, unit: '%', default: 30, title: '3 · 输入框遮罩（%）', description: '输入框的不透明度（0% 全透，100% 完全不透明）。' },
+      { key: 'glassBlur3', type: 'range', min: 0, max: 24, step: 1, unit: 'px', default: 8, title: '3 · 输入框模糊（px）', description: '输入框背后的虚化强度，与内容区的模糊各算各的、互不影响。' },
       { key: 'color4', type: 'color', default: '#4a4a4a', title: '4 · 用量栏颜色', description: '底部用量栏那条圆角磨砂条的底色（默认 #4A4A4A）。' },
-      { key: 'glass4', type: 'range', min: 0, max: 100, step: 1, unit: '%', default: 70, title: '4 · 用量栏遮罩（%）', description: '用量栏磨砂条的不透明度。数值越高文字越清晰。' },
-      { key: 'glassBlur4', type: 'range', min: 0, max: 30, step: 1, unit: 'px', default: 16, title: '4 · 用量栏模糊（px）', description: '用量栏磨砂条背后的虚化强度（0px 只保留半透明底色）。' },
+      { key: 'glass4', type: 'range', min: 0, max: 100, step: 1, unit: '%', default: 30, title: '4 · 用量栏遮罩（%）', description: '用量栏磨砂条的不透明度。数值越高文字越清晰。' },
+      { key: 'glassBlur4', type: 'range', min: 0, max: 30, step: 1, unit: 'px', default: 8, title: '4 · 用量栏模糊（px）', description: '用量栏磨砂条背后的虚化强度（0px 只保留半透明底色）。' },
       { key: 'color5', type: 'color', default: '#4a4a4a', title: '5 · 指令菜单颜色', description: '输入「/」「@」时弹出的指令与引用菜单底色（默认 #4A4A4A）。' },
-      { key: 'glass5', type: 'range', min: 0, max: 100, step: 1, unit: '%', default: 92, title: '5 · 指令菜单遮罩（%）', description: '指令菜单的不透明度。菜单要压住会话文字，建议保持较高值。' },
-      { key: 'glassBlur5', type: 'range', min: 0, max: 30, step: 1, unit: 'px', default: 16, title: '5 · 指令菜单模糊（px）', description: '指令菜单背后的虚化强度。' },
+      { key: 'glass5', type: 'range', min: 0, max: 100, step: 1, unit: '%', default: 85, title: '5 · 指令菜单遮罩（%）', description: '指令菜单的不透明度。菜单要压住会话文字，建议保持较高值。' },
+      { key: 'glassBlur5', type: 'range', min: 0, max: 30, step: 1, unit: 'px', default: 24, title: '5 · 指令菜单模糊（px）', description: '指令菜单背后的虚化强度。' },
+      { key: 'color6', type: 'color', default: '#424242', title: '6 · 我的消息颜色', description: '你发送的消息气泡底色（默认 #424242，比内容区亮一档以便区分）。' },
+      { key: 'glass6', type: 'range', min: 0, max: 100, step: 1, unit: '%', default: 25, title: '6 · 我的消息遮罩（%）', description: '消息气泡的不透明度（0% 全透，100% 完全不透明）。' },
+      { key: 'glassBlur6', type: 'range', min: 0, max: 24, step: 1, unit: 'px', default: 0, title: '6 · 我的消息模糊（px）', description: '消息气泡背后的虚化强度（0px 关闭）。' },
       {
         key: 'fit', type: 'select', default: 'cover', title: '画面适配',
         description: '壁纸与窗口比例不一致时的缩放方式。推荐“填满整窗”：按最短边等比放大铺满全屏，不会留黑边（长边超出部分居中裁切）。',
@@ -102,7 +111,7 @@ window.__ModuleLoader__.load({
           { value: 'fill', label: '拉伸铺满 · 强制铺满（可能变形）' },
         ],
       },
-      { key: 'focalX', type: 'range', min: 0, max: 100, step: 1, unit: '%', default: 50, onlyWhen: (s) => s.fit === 'cover', title: '主体横向位置（%）', description: '仅在“填满整窗”模式下生效，当画面横向被裁切时，调整画面水平对齐重心（50% 为居中）。' },
+      { key: 'focalX', type: 'range', min: 0, max: 100, step: 1, unit: '%', default: 49, onlyWhen: (s) => s.fit === 'cover', title: '主体横向位置（%）', description: '仅在“填满整窗”模式下生效，当画面横向被裁切时，调整画面水平对齐重心（50% 为居中）。' },
       { key: 'focalY', type: 'range', min: 0, max: 100, step: 1, unit: '%', default: 50, onlyWhen: (s) => s.fit === 'cover', title: '主体纵向位置（%）', description: '仅在“填满整窗”模式下生效，当画面纵向被裁切时，调整画面垂直对齐重心（50% 为居中）。' },
       {
         key: 'quality', type: 'select', default: 'auto', title: '视频画质',
@@ -198,14 +207,6 @@ window.__ModuleLoader__.load({
         parseInt(value.slice(3, 5), 16),
         parseInt(value.slice(5, 7), 16),
       ]
-    }
-
-    /** Lift a user bubble away from the chosen card color by a fixed contrast step. */
-    function deriveUserBubbleRgb(rgb) {
-      const luminance = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255
-      const toward = luminance < 0.72 ? 255 : 0
-      const amount = luminance < 0.72 ? 0.14 : 0.1
-      return rgb.map((channel) => Math.round(channel + (toward - channel) * amount))
     }
 
     function readStore(key, fallback) {
@@ -308,7 +309,7 @@ window.__ModuleLoader__.load({
           localFeedback, dark: isDark(),
           effectiveColors: {
             1: zoneStyle(1).color, 2: zoneStyle(2).color, 3: zoneStyle(3).color,
-            4: zoneStyle(4).color, 5: zoneStyle(5).color,
+            4: zoneStyle(4).color, 5: zoneStyle(5).color, 6: zoneStyle(6).color,
           },
         }
       }
@@ -363,7 +364,6 @@ window.__ModuleLoader__.load({
         const alpha = (opacity / 100).toFixed(3)
         return {
           bg: 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + alpha + ')',
-          userBg: 'rgba(' + deriveUserBubbleRgb(rgb).join(',') + ',' + alpha + ')',
           blur: blurPx > 0 ? 'blur(' + blurPx + 'px)' : 'none',
           color: normalizeHexColor(chosen, fallback),
         }
@@ -377,6 +377,7 @@ window.__ModuleLoader__.load({
         const three = zoneStyle(3)
         const four = zoneStyle(4)
         const five = zoneStyle(5)
+        const six = zoneStyle(6)
         root.style.setProperty('--lwc-dim', (clamp(settings.dim, 0, 85) / 100).toFixed(3))
         root.style.setProperty('--lwc-blur', clamp(settings.blur, 0, 18) + 'px')
         root.style.setProperty('--lwc-fit', settings.fit)
@@ -384,15 +385,16 @@ window.__ModuleLoader__.load({
         root.style.setProperty('--lwc-y', clamp(settings.focalY, 0, 100) + '%')
         root.style.setProperty('--lwc-bg-1', one.bg)
         root.style.setProperty('--lwc-bg-2', two.bg)
-        root.style.setProperty('--lwc-bg-2-user', two.userBg)
         root.style.setProperty('--lwc-bg-3', three.bg)
         root.style.setProperty('--lwc-bg-4', four.bg)
         root.style.setProperty('--lwc-bg-5', five.bg)
+        root.style.setProperty('--lwc-bg-6', six.bg)
         root.style.setProperty('--lwc-blur-1', one.blur)
         root.style.setProperty('--lwc-blur-2', two.blur)
         root.style.setProperty('--lwc-blur-3', three.blur)
         root.style.setProperty('--lwc-blur-4', four.blur)
         root.style.setProperty('--lwc-blur-5', five.blur)
+        root.style.setProperty('--lwc-blur-6', six.blur)
         // Zone 2 lives on a layer behind the panel content (see STYLE_TEXT), so the
         // composer card and the instruction menu sit beside it rather than inside
         // it — each keeps its own backdrop filter and stays independently tunable.
@@ -933,7 +935,7 @@ window.__ModuleLoader__.load({
           layer = null
           const root = document.documentElement
           root.removeAttribute('data-live-canvas')
-          for (const name of ['--lwc-dim', '--lwc-blur', '--lwc-fit', '--lwc-x', '--lwc-y', '--lwc-bg-1', '--lwc-bg-2', '--lwc-bg-2-user', '--lwc-bg-3', '--lwc-bg-4', '--lwc-bg-5', '--lwc-blur-1', '--lwc-blur-2', '--lwc-blur-3', '--lwc-blur-4', '--lwc-blur-5']) {
+          for (const name of ['--lwc-dim', '--lwc-blur', '--lwc-fit', '--lwc-x', '--lwc-y', '--lwc-bg-1', '--lwc-bg-2', '--lwc-bg-3', '--lwc-bg-4', '--lwc-bg-5', '--lwc-bg-6', '--lwc-blur-1', '--lwc-blur-2', '--lwc-blur-3', '--lwc-blur-4', '--lwc-blur-5', '--lwc-blur-6']) {
             root.style.removeProperty(name)
           }
         }
@@ -1024,8 +1026,9 @@ window.__ModuleLoader__.load({
       // `[data-composer-overlay]`, and they must keep the host's own surface.
       'html[data-live-canvas="on"] [data-composer-card] > *:not(button){background-color:transparent!important;background-image:none!important}',
       'html[data-live-canvas="on"] [data-input-scroll],html[data-live-canvas="on"] [data-composer-input],html[data-live-canvas="on"] [data-composer-placeholder]{background-color:transparent!important;background-image:none!important}',
-      // Sent bubbles keep their contrast step against the chosen card color.
-      'html[data-live-canvas="on"] [data-message-bubble]{background:var(--lwc-bg-2-user,rgba(66,66,66,0.500))!important}',
+      // Sent bubbles have their own zone so the contrast step is tunable. Only the
+      // fill and the frost change here: radius and padding stay the host's own.
+      'html[data-live-canvas="on"] [data-message-bubble]{background:var(--lwc-bg-6,rgba(66,66,66,0.250))!important;backdrop-filter:var(--lwc-blur-6,none);-webkit-backdrop-filter:var(--lwc-blur-6,none)}',
       // Drawer (the gallery and settings live here, as in the reference).
       '.lwc-drawer{position:fixed;top:var(--dsh-frame-top-clearance,0px);right:0;bottom:0;width:clamp(360px,30vw,540px);z-index:60;display:flex;flex-direction:column;min-height:0;box-sizing:border-box;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#17191e) 96%,transparent);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:var(--dsw-alias-label-primary,#e8ecf2);border-left:1px solid var(--dsw-alias-border-l1,rgba(127,127,127,.28));box-shadow:-16px 0 44px rgba(0,0,0,.22)}',
       '.lwc-drawer-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px 10px;border-bottom:1px solid var(--dsw-alias-border-l1,rgba(127,127,127,.2))}',
@@ -1163,7 +1166,7 @@ window.__ModuleLoader__.load({
       const fitLabel = SETTINGS_FIELDS.find((field) => field.key === 'fit').options.find((option) => option.value === settings.fit)?.label ?? settings.fit
       const qualityField = SETTINGS_FIELDS.find((field) => field.key === 'quality')
       const qualityLabel = qualityField.options.find((option) => option.value === settings.quality)?.label ?? settings.quality
-      const summary = `当前显示：${fitLabel} · 画质 ${qualityLabel} · 背景 ${settings.dim}%/${settings.blur}px · 遮罩 ${settings.glass1}%/${settings.glass2}%/${settings.glass3}%/${settings.glass4}%/${settings.glass5}% · 模糊 ${settings.glassBlur1}/${settings.glassBlur2}/${settings.glassBlur3}/${settings.glassBlur4}/${settings.glassBlur5}px`
+      const summary = `当前显示：${fitLabel} · 画质 ${qualityLabel} · 背景 ${settings.dim}%/${settings.blur}px · 遮罩 ${settings.glass1}/${settings.glass2}/${settings.glass3}/${settings.glass4}/${settings.glass5}/${settings.glass6}% · 模糊 ${settings.glassBlur1}/${settings.glassBlur2}/${settings.glassBlur3}/${settings.glassBlur4}/${settings.glassBlur5}/${settings.glassBlur6}px`
       return h('div', null,
         h('div', { className: 'lwc-status' }, summary),
         SETTINGS_FIELDS.filter((field) => field.onlyWhen === undefined || field.onlyWhen(settings)).map((field) => {

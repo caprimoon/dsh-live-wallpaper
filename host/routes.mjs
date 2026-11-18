@@ -61,7 +61,7 @@ function parseRange(header, size) {
 export function createRouteHandler(app, activity) {
   return async function handle(req, res) {
     const url = new URL(req.url ?? '/', 'http://localhost')
-    const rest = url.pathname.replace(/^\/plugins\/live-canvas/, '')
+    const rest = url.pathname.replace(/^\/plugins\/live-wallpaper/, '')
     try {
       if (rest === '/events' && req.method === 'GET') {
         activity.subscribe(res)

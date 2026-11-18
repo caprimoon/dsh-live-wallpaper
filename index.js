@@ -11,13 +11,13 @@ import { createActivityHub } from './host/events.mjs'
 import { createRouteHandler } from './host/routes.mjs'
 
 /** Plugin name used by the Loader row. */
-export const name = 'live-canvas'
+export const name = 'live-wallpaper'
 
 /** Required service: the browser HTTP carrier. */
 export const inject = ['webServer']
 
 /** Route prefix owned by this bundle. */
-export const ROUTE_PREFIX = '/plugins/live-canvas'
+export const ROUTE_PREFIX = '/plugins/live-wallpaper'
 
 /**
  * Resolve the media directory for this row.

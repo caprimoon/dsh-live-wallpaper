@@ -1,5 +1,5 @@
 /**
- * LiveCanvas — Live wallpaper and glass for the DeepSeek Harness Web GUI.
+ * Live Wallpaper — dynamic wallpaper and glass for the DeepSeek Harness Web GUI.
  *
  * Host half: mounts the gallery backend (five online sources, local media
  * import, thumbnail proxy) on one HTTP prefix so the browser half can browse

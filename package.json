@@ -1,9 +1,9 @@
 {
   "name": "@local/dsh-live-wallpaper",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "type": "module",
-  "description": "Live wallpaper and glass panels for the DeepSeek Harness web GUI: five-source video gallery, local media import, offline canvas scenes, and per-zone glass with backdrop blur.",
+  "description": "Dynamic wallpaper and glass panels for the DeepSeek Harness web GUI: five-source video gallery, local media import, offline canvas scenes, and six independently adjustable glass zones with backdrop blur.",
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",

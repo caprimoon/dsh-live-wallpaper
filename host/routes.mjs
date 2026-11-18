@@ -1,5 +1,5 @@
 /**
- * HTTP surface of the LiveCanvas Host half.
+ * HTTP surface of the Live Wallpaper Host half.
  *
  * One prefix route serves three things, so the bundle registers a single
  * composition-level path:

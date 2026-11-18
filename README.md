@@ -1,6 +1,6 @@
-# LiveCanvas · 动态壁纸与毛玻璃
+# Live Wallpaper · 动态壁纸与毛玻璃
 
-在 DeepSeek Harness 窗口背后铺一层动态壁纸，并把左侧栏、内容区、底部输入框、用量栏与指令菜单变成五块可分别调节的毛玻璃面板。壁纸、图库与全部显示设置都集中在右侧抽屉里。
+在 DeepSeek Harness 窗口背后铺一层动态壁纸，并把左侧栏、内容区、底部输入框、用量栏、指令菜单与我的消息变成六块可分别调节的毛玻璃面板。壁纸、图库与全部显示设置都集中在右侧抽屉里。
 
 ## 功能
 
@@ -27,7 +27,7 @@
 
 1. 下载本仓库（`git clone https://github.com/caprimoon/dsh-live-wallpaper.git`，或在 Releases 下载 `dsh-live-wallpaper.zip` 后解压）。
 2. 打开 DeepSeek Harness → **插件** → **添加插件** → 选择解压后的 `dsh-live-wallpaper` 目录（目录根部应直接包含 `package.json`）。
-3. 启用 **LiveCanvas** 后刷新页面。
+3. 启用 **Live Wallpaper** 后刷新页面。
 
 ## 使用
 

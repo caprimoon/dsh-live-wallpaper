@@ -1,5 +1,5 @@
 /**
- * LiveCanvas — live wallpaper and glass panels for the DeepSeek Harness Web GUI.
+ * Live Wallpaper — dynamic wallpaper and glass panels for the DeepSeek Harness Web GUI.
  *
  * Browser half. The wallpaper layer is one fixed element behind the shell; the
  * shell's own surfaces become translucent through token overrides and a small

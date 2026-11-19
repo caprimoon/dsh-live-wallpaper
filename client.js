@@ -16,6 +16,8 @@ window.__ModuleLoader__.load({
 
     const PREFIX = '/plugins/live-wallpaper'
     const API = PREFIX + '/api'
+    // Stamped onto <html> so a stale bundle is visible at a glance in DevTools.
+    const BUILD = '1.2.4'
     // Storage keys and the media directory keep their original names: they are
     // stable identities for the user's own data (tuned settings, favourites,
     // imported files) and must survive the project rename.
@@ -1014,6 +1016,12 @@ window.__ModuleLoader__.load({
       // Zone 3 — the composer card, always with its own filter; independent of the
       // content-area blur because that one now lives on a layer behind it.
       'html[data-live-wallpaper="on"] [data-composer-card]{background:var(--lwc-bg-3,rgba(74,74,74,0.500))!important;background-image:none!important;backdrop-filter:var(--lwc-blur-3,none);-webkit-backdrop-filter:var(--lwc-blur-3,none);isolation:isolate}',
+      // The ask-user / plan-review takeovers replace the composer card. Their painted
+      // surface is the <section> INSIDE the keyed frame (`.frame > section.card`); the
+      // frame itself is only padding. Both the direct child and any section below are
+      // listed, so a wrapper added by a future build still gets the frost.
+      'html[data-live-wallpaper="on"] [data-question-key] > *,html[data-live-wallpaper="on"] [data-plan-review-key] > *{background:var(--lwc-bg-3,rgba(74,74,74,0.500))!important;background-image:none!important;backdrop-filter:var(--lwc-blur-3,none);-webkit-backdrop-filter:var(--lwc-blur-3,none)}',
+      'html[data-live-wallpaper="on"] [data-question-key] section,html[data-live-wallpaper="on"] [data-plan-review-key] section{background:var(--lwc-bg-3,rgba(74,74,74,0.500))!important;background-image:none!important;backdrop-filter:var(--lwc-blur-3,none);-webkit-backdrop-filter:var(--lwc-blur-3,none)}',
       // Zone 5 — the `/` and `@` instruction menus, which the composer renders inside
       // `[data-composer-overlay]`. `data-trigger-menu` is the host's own hook.
       'html[data-live-wallpaper="on"] [data-trigger-menu]{background:var(--lwc-bg-5,rgba(74,74,74,0.920))!important;backdrop-filter:var(--lwc-blur-5,none);-webkit-backdrop-filter:var(--lwc-blur-5,none);border-radius:14px;border:1px solid var(--dsw-alias-border-l1,rgba(127,127,127,.28))}',
@@ -1026,8 +1034,15 @@ window.__ModuleLoader__.load({
       // `[data-composer-overlay]`, and they must keep the host's own surface.
       'html[data-live-wallpaper="on"] [data-composer-card] > *:not(button){background-color:transparent!important;background-image:none!important}',
       'html[data-live-wallpaper="on"] [data-input-scroll],html[data-live-wallpaper="on"] [data-composer-input],html[data-live-wallpaper="on"] [data-composer-placeholder]{background-color:transparent!important;background-image:none!important}',
-      // Sent bubbles have their own zone so the contrast step is tunable. Only the
-      // fill and the frost change here: radius and padding stay the host's own.
+      // The right column's document panes follow 2 · 内容区. The painted node is the
+      // dockkit pane itself (`[data-dockkit-pane]`, background `--dsw-alias-bg-base`),
+      // so it takes the content-area fill AND frost; the panel wrapper keeps no fill
+      // of its own, and the previews inside stay transparent.
+      'html[data-live-wallpaper="on"] [data-slot="rightbar"] > *{background:transparent!important}',
+      'html[data-live-wallpaper="on"] [data-slot="rightbar"] [data-dockkit-pane]{background:var(--lwc-bg-2,rgba(35,35,35,0.250))!important;background-image:none!important;backdrop-filter:var(--lwc-blur-2,none);-webkit-backdrop-filter:var(--lwc-blur-2,none)}',
+      'html[data-live-wallpaper="on"] [data-slot="rightbar"] [data-document-preview],html[data-live-wallpaper="on"] [data-slot="rightbar"] [data-textpreview-body],html[data-live-wallpaper="on"] [data-slot="rightbar"] [data-textpreview-plain],html[data-live-wallpaper="on"] [data-slot="rightbar"] [data-document-markdown],html[data-live-wallpaper="on"] [data-slot="rightbar"] [data-code-preview],html[data-live-wallpaper="on"] [data-slot="rightbar"] [data-pdf-preview],html[data-live-wallpaper="on"] [data-slot="rightbar"] [data-image-preview],html[data-live-wallpaper="on"] [data-slot="rightbar"] [data-excel-preview]{background-color:transparent!important;background-image:none!important}',
+      // Zone 6 — sent messages have their own zone so the contrast step is tunable.
+      // Only the fill and the frost change here: radius and padding stay the host's own.
       'html[data-live-wallpaper="on"] [data-message-bubble]{background:var(--lwc-bg-6,rgba(66,66,66,0.250))!important;backdrop-filter:var(--lwc-blur-6,none);-webkit-backdrop-filter:var(--lwc-blur-6,none)}',
       // Drawer (the gallery and settings live here, as in the reference).
       '.lwc-drawer{position:fixed;top:var(--dsh-frame-top-clearance,0px);right:0;bottom:0;width:clamp(360px,30vw,540px);z-index:60;display:flex;flex-direction:column;min-height:0;box-sizing:border-box;background:color-mix(in srgb,var(--dsw-alias-bg-layer-1,#17191e) 96%,transparent);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:var(--dsw-alias-label-primary,#e8ecf2);border-left:1px solid var(--dsw-alias-border-l1,rgba(127,127,127,.28));box-shadow:-16px 0 44px rgba(0,0,0,.22)}',
@@ -1465,6 +1480,108 @@ function Drawer({ engine }) {
           return () => style.remove()
         })
         ctx.effect(() => engine.boot())
+        ctx.effect(() => {
+          document.documentElement.setAttribute('data-lwp-build', BUILD)
+          return () => document.documentElement.removeAttribute('data-lwp-build')
+        })
+        // Two surfaces are replaced/re-created by the host at runtime (the ask-user
+        // takeover and the right-column document panes). The stylesheet alone is not
+        // enough for them — they are re-created after React renders — so they are also
+        // painted with inline `!important`, which wins regardless of selector order and
+        // survives re-renders. A light interval re-applies after each swap.
+        ctx.effect(() => {
+          const PAINT = [
+            ['[data-question-key] > *, [data-plan-review-key] > *', 'var(--lwc-bg-3)', 'var(--lwc-blur-3)'],
+            ['[data-slot="rightbar"] [data-dockkit-pane]', 'var(--lwc-bg-2)', 'var(--lwc-blur-2)'],
+          ]
+          const paint = () => {
+            for (const [selector, fill, frost] of PAINT) {
+              for (const el of document.querySelectorAll(selector)) {
+                if (el.dataset.lwpFill === fill) continue
+                el.style.setProperty('background', fill, 'important')
+                el.style.setProperty('background-image', 'none', 'important')
+                el.style.setProperty('backdrop-filter', frost, 'important')
+                el.style.setProperty('-webkit-backdrop-filter', frost, 'important')
+                el.dataset.lwpFill = fill
+              }
+            }
+          }
+          paint()
+          const timer = window.setInterval(paint, 1000)
+          return () => {
+            window.clearInterval(timer)
+            for (const el of document.querySelectorAll('[data-lwp-fill]')) {
+              el.style.removeProperty('background')
+              el.style.removeProperty('background-image')
+              el.style.removeProperty('backdrop-filter')
+              el.style.removeProperty('-webkit-backdrop-filter')
+              delete el.dataset.lwpFill
+            }
+          }
+        })
+        // Opt-in self-report: which selectors matched, and what the browser actually
+        // computed for them, written beside the media cache. Enable it by running
+        //   localStorage.setItem('lwp:diagnose', '1')
+        // in DevTools and reloading; it costs nothing while the flag is absent.
+        ctx.effect(() => {
+          if (window.localStorage.getItem('lwp:diagnose') !== '1') return () => {}
+          const timer = window.setTimeout(() => {
+            try {
+              const style = document.getElementById('dsh-live-wallpaper-style')
+              const probe = (selector) => {
+                const el = document.querySelector(selector)
+                if (el === null) return { selector, found: false }
+                const computed = window.getComputedStyle(el)
+                return {
+                  selector,
+                  found: true,
+                  tag: el.tagName.toLowerCase(),
+                  cls: String(el.className || '').slice(0, 100),
+                  data: [...el.attributes].map((a) => a.name).filter((n) => n.startsWith('data-')).slice(0, 8),
+                  bg: computed.backgroundColor,
+                  backdrop: (computed.backdropFilter || computed.webkitBackdropFilter || 'none').slice(0, 40),
+                }
+              }
+              const report = {
+                gate: document.documentElement.getAttribute('data-live-wallpaper'),
+                stylePresent: style !== null,
+                styleBytes: style === null ? 0 : style.textContent.length,
+                styleHasQuestionRule: style === null ? false : style.textContent.includes('[data-question-key] > *'),
+                styleHasPaneRule: style === null ? false : style.textContent.includes('[data-dockkit-pane]'),
+                viewport: [window.innerWidth, window.innerHeight],
+                probes: [
+                  '[data-question-key]',
+                  '[data-question-key] > *',
+                  '[data-question-key] section',
+                  '[data-plan-review-key] > *',
+                  '[data-slot="rightbar"] > *',
+                  '[data-slot="rightbar"] [data-dockkit-pane]',
+                  '[data-dockkit-pane]',
+                  '[data-document-preview]',
+                  '[data-composer-card]',
+                ].map(probe),
+                rightbar: [...document.querySelectorAll('[data-slot="rightbar"] *')].slice(0, 30).map((el) => {
+                  const computed = window.getComputedStyle(el)
+                  return {
+                    tag: el.tagName.toLowerCase(),
+                    cls: String(el.className || '').slice(0, 70),
+                    data: [...el.attributes].map((a) => a.name).filter((n) => n.startsWith('data-')).slice(0, 6),
+                    bg: computed.backgroundColor,
+                    backdrop: (computed.backdropFilter || 'none').slice(0, 24),
+                  }
+                }),
+              }
+              fetch(API, {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ method: 'debugReport', params: { report } }),
+              }).catch(() => {})
+            } catch {
+              /* diagnostics must never disturb the UI */
+            }
+          }, 2500)
+          return () => window.clearTimeout(timer)
+        })
         // The row lives in the global panel list; its `main` seat only opens the
         // drawer, so the gallery UI stays a drawer as requested.
         ctx.slots.register({

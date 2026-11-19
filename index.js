@@ -6,6 +6,7 @@
  * and stream without cross-origin trouble.
  */
 import path from 'node:path'
+import fs from 'node:fs'
 import createBackend from './host/backend.mjs'
 import { createActivityHub } from './host/events.mjs'
 import { createRouteHandler } from './host/routes.mjs'
@@ -62,6 +63,13 @@ export function apply(ctx, config) {
     void (async () => {
       const app = await createBackend({ dataDir, catalogCacheMinutes: cacheMinutes })
       app.mediaDir = path.join(dataDir, 'media')
+      // Diagnostics channel: the browser half posts what its selectors actually
+      // matched, and this writes it beside the media cache for support.
+      app.debugReport = async (payload) => {
+        const target = path.join(dataDir, 'debug-report.json')
+        await fs.promises.writeFile(target, JSON.stringify(payload ?? {}, null, 2), 'utf8')
+        return { path: target }
+      }
       if (cancelled) return
       disposeRoute = ctx.webServer.register({
         kind: 'prefix',
